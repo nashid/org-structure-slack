@@ -1,0 +1,3 @@
+[submodule "cli"]
+	path = cli
+	url = git@github.com:saksdirect/org-structure-cli.git

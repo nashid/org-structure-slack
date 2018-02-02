@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# Fixes the UnknownHostException you get when running in Fargate
+# https://stackoverflow.com/questions/48508480/unknownhostexception-from-java-application-running-in-aws-ecs-docker-container-o
+echo "127.0.0.1 $HOSTNAME" >> /etc/hosts
