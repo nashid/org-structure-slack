@@ -1,11 +1,15 @@
 # org-structure-slack
 
-A thin Slack client for [org-structure-cli][org-structure-cli] that exposes
-the read-only `get` and `find` commands.
+A Slack client built on top of [org-structure-cli][org-structure-cli].
 
 Commands entered in the bot that start with `get` or `find` are passed straight
 through to a local org-structure-cli. Any response is passed back to the user
 with some minor data formatting. The client is pulled in as a submodule.
+
+The bot also integrates with PagerDuty and can be used to page a team. The team's
+PagerDuty service is looked up using the cli (it expects a team column called 'PagerDuty')
+and the PagerDuty auth token is read from the ORG_STRUCTURE_PD_TOKEN environmant
+variable.
 
 ## Building
 
@@ -24,13 +28,15 @@ or by running the `run.sh` file:
 
 `run.sh` expects to find the data directory and cli in `./data` and `./cli` respectively.
 
+Set an `ORG_STRUCTURE_PD_TOKEN` if you want to use the PagerDuty functionality.
+
 ## Docker
 
 org-structure-slack also comes with a Dockerfile, which builds an image using
 [BigTrueData's scala alpine image][scala-alpine] as a base and runs `run.sh`.
 
 Because the container runs `run.sh`, you only need to provide the `ORG_STRUCTURE_SLACK_TOKEN`
-environment variable when running the container.
+environment variable (and optionally `ORG_STRUCTURE_PD_TOKEN`)  when running the container.
 
 
 [org-structure-cli]: https://github.com/saksdirect/org-structure-cli
