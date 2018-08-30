@@ -1,7 +1,38 @@
 module.exports = function(robot) {
 
+  var usage = "Usage:\n\twho is [somebody]\n\twho are [some team]\n\tpage [some team]\n";
+
   function isValidCommand(command) {
-    return command.startsWith('page') || command.startsWith('get') || command.startsWith('find') || command.startsWith('member') || command.startsWith('team') || command.startsWith('title') || command.startsWith('help');
+    var commandBits = command.split(' ');
+
+    if (command.startsWith('page')) {
+      return commandBits.length === 2;
+    } else if (command.startsWith('who is')) {
+      return commandBits.length >= 3;
+    } else if (command.startsWith('who are')) {
+      return commandBits.length >= 3;
+    } else {
+      return false;
+    };
+  }
+
+  function buildCliCommand(command) {
+    var orgDataDir = process.env.ORG_STRUCTURE_DATA_DIR,
+        cli = process.env.ORG_STRUCTURE_CLIENT;
+
+    return 'ORG_DATA_DIR=' + orgDataDir + ' ' + cli + ' ' + command;
+  }
+
+  function runCommand(res, command, onSuccess) {
+    var execCmd = require('child_process').exec;
+
+    execCmd(command, function(error, stdout, stderr) {
+      if (stdout) {
+        onSuccess(JSON.parse(stdout));
+      } else {
+        res.send(stdout || stderr);
+      }
+    });
   }
 
   function parseGetResponse(responseItem) {
@@ -34,22 +65,11 @@ module.exports = function(robot) {
     return result;
   }
 
-  function buildCliCommand(userCommand) {
-    var orgDataDir = process.env.ORG_STRUCTURE_DATA_DIR,
-        cli = process.env.ORG_STRUCTURE_CLIENT,
-        commandBits,
-        command;
-
-    if (userCommand.startsWith('page')) {
-      commandBits = userCommand.split(" ");
-      command = 'ORG_DATA_DIR=' + orgDataDir + ' ' + cli + ' get team ' + commandBits[1];
-    } else {
-      command = 'ORG_DATA_DIR=' + orgDataDir + ' ' + cli + ' ' + userCommand;
-    }
-    return command;
+  function createIncidentDescription(res) {
+    return res.message.user.real_name + " is looking for your urgently in Slack channel #" + res.message.rawMessage.channel.name;
   }
 
-  function createIncident(service, description, from, onSuccess) {
+  function createIncident(res, service, description, from) {
     var data = JSON.stringify({
                  "incident": {
                    "type": "incident",
@@ -70,17 +90,67 @@ module.exports = function(robot) {
       .header('From', from)
       .post(data)(function(err, resp, body) {
         if (err) {
+          res.send("Error trying to create incident. Please see logs for more details.");
           console.log("Error trying to create incident: " + err);
         } else if (resp && resp.statusCode != 200) {
+          res.send("Error trying to create incident. Please see logs for more details.");
           console.log("Error trying to create incident. Response code: " + resp.statusCode + "; Response body: " + body);
         } else {
-          onSuccess(JSON.parse(body));
+          res.send("Incident " + JSON.parse(result).incident.html_url + " created");
         }
       });
   }
 
-  function createIncidentDescription(res) {
-    return res.message.user.real_name + " is looking for your urgently in Slack channel #" + res.message.rawMessage.channel.name;
+  function isFirstOccuranceOfMember(member, indexToCheck, self) {
+    // Check if this is the first occurance of the member
+    return self.findIndex(e => e.Name === member.Name) === indexToCheck;
+  }
+
+  function whoIsCommand(res, userCommand) {
+    var searchTerms = userCommand.split(' ');
+    searchTerms.splice(0, 2);
+
+    // Search by name
+    var command = buildCliCommand(['find', 'members', 'name'].concat(searchTerms).join(' '));
+    runCommand(res, command, function(nameResult) {
+      // Now search by github handle
+      command = buildCliCommand(['find', 'members', 'github'].concat(searchTerms).join(' '));
+      runCommand(res, command, function(githubResult) {
+        // Now search by email
+        command = buildCliCommand(['find', 'members', 'email'].concat(searchTerms).join(' '));
+        runCommand(res, command, function(emailResult) {
+          var result = nameResult.concat(githubResult).concat(emailResult).filter(isFirstOccuranceOfMember);
+          res.send(parseListResponse(result));
+        });
+      });
+    });
+  }
+
+  function whoAreCommand(res, userCommand) {
+    var searchTerms = userCommand.split(' ');
+    searchTerms.splice(0, 2);
+
+    // Search by name
+    var command = buildCliCommand(['get', 'team'].concat(searchTerms).join(' '));
+    runCommand(res, command, function(nameResult) {
+      res.send(parseGetResponse(nameResult));
+    });
+  }
+
+  function pageCommand(res, userCommand) {
+    var searchTerms = userCommand.split(' ');
+    searchTerms.splice(0, 1);
+
+    var command = buildCliCommand(['get', 'team'].concat(searchTerms).join(' '));
+    // Get the team's PD service
+    runCommand(res, command, function(team) {
+      var pdService = team.PagerDuty;
+      if (pdService && pdService.length > 0) {
+        createIncident(res, pdService, createIncidentDescription(res), res.message.user.profile.email);
+      } else {
+        res.send("Sorry! I don't know the PagerDuty service for this team. Is it set up in `https://github.com/saksdirect/org-structure/blob/master/teams.csv`?");
+      }
+    });
   }
 
   robot.respond(/(.*)/i, function(res) {
@@ -92,33 +162,14 @@ module.exports = function(robot) {
     console.log('Command: ' + command);
 
     if (!isValidCommand(command)) {
-      res.send("Look up information about our Org Structure! Type `help` to get started.");
-    } else {
-      var execCmd = require('child_process').exec,
-          fullCmd = buildCliCommand(command);
-
-      execCmd(fullCmd, function(error, stdout, stderr) {
-        if (stdout) {
-          if (command.startsWith('get')) {
-            var output = parseGetResponse(JSON.parse(stdout));
-            res.send(output);
-          } else if (command.startsWith('page')) {
-            var pdService = JSON.parse(stdout).PagerDuty;
-            if (pdService && pdService.length > 0) {
-              createIncident(pdService, createIncidentDescription(res), res.message.user.profile.email, function(result) {
-                res.send("Incident " + result.incident.html_url + " created");
-              });
-            } else {
-              res.send("Sorry! I don't know the PagerDuty service for this team. Is it set up in `https://github.com/saksdirect/org-structure/blob/master/teams.csv`?");
-            }
-          } else {
-            var output = parseListResponse(JSON.parse(stdout));
-            res.send(output);
-          }
-        } else {
-          res.send(stdout || stderr);
-        }
-      });
+      res.send("Look up information about our Org Structure!");
+      res.send(usage);
+    } else if (command.startsWith('page')) {
+      pageCommand(res, command);
+    } else if (command.startsWith('who is')) {
+      whoIsCommand(res, command);
+    } else if (command.startsWith('who are')) {
+      whoAreCommand(res, command);
     }
   });
 };
