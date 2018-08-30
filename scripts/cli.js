@@ -162,7 +162,6 @@ module.exports = function(robot) {
     console.log('Command: ' + command);
 
     if (!isValidCommand(command)) {
-      res.send("Look up information about our Org Structure!");
       res.send(usage);
     } else if (command.startsWith('page')) {
       pageCommand(res, command);
