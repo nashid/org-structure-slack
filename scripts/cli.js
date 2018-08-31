@@ -7,6 +7,7 @@ robot.respond(/(.*)/i, function(res) {
   var startTime = new Date().getTime(),
       requestId = startTime, // Yeah, yeah. Whatever.
       command = res.match[1].replace(/[\u2018\u2019]/g, '\\\''); // Replace the Slack curly quotes!
+      attachmentColors = ['#0F9566', '#D11D35', '#F3C021', '#0D1682'];
 
   console.log('Received command: ' + command + ' (Request id: ' + requestId);
 
@@ -48,34 +49,62 @@ robot.respond(/(.*)/i, function(res) {
     });
   }
 
-  function parseGetResponse(responseItem) {
-    // Only one result will be returned for 'get' so the response is an object rather than an array
-    var keys = Object.keys(responseItem).sort(),
-        key,
-        result = '';
-    for (var keyIndex in keys) {
-      key = keys[keyIndex];
-      result = result + key + ': ' + responseItem[key] + '\n';
+  function createAttachments(items) {
+    var attachments = [], color;
+
+    for (var index in items) {
+      color = attachmentColors[index % attachmentColors.length];
+      attachments.push(createAttachment(items[index], color));
     }
-    return result;
+    return attachments;
   }
 
-  function parseListResponse(responseList) {
-    var responseItem,
-        keys,
-        key,
-        result = '';
+  function createAttachment(item, color) {
+    var keys = Object.keys(item).sort(),
+        attachment = {},
+        fields = [],
+        field, key, value,
+        name, title, primaryLocation, secondaryLocation,
+        attachmentText = [], location = [];
 
-    for (var index in responseList) {
-      responseItem = responseList[index];
-      keys = Object.keys(responseItem).sort();
-      result = result + '\n';
-      for (var keyIndex in keys) {
-        key = keys[keyIndex];
-        result = result + key + ': ' + responseItem[key] + '\n';
+    for (var keyIndex in keys) {
+      key = keys[keyIndex];
+      value = item[key];
+      if (value.length > 0) {
+        switch (key.toUpperCase()) {
+          case 'NAME':
+            name = value;
+            break;
+          case 'TITLE':
+            title = value;
+            break;
+          case 'PRIMARY LOCATION':
+            primaryLocation = value;
+            break;
+          case 'SECONDARY LOCATION':
+            secondaryLocation = '(' + value + ')';
+            break;
+          default:
+            field = {}
+            field.title = key;
+            field.value = item[key];
+            field.short = true;
+            fields.push(field);
+        }
       }
     }
-    return result;
+
+    attachment.fields = fields;
+    attachment.color = color ? color : attachmentColors[0];
+
+    if (name) attachment.title = name;
+    if (title) attachmentText.push(title);
+    if (primaryLocation) location.push(primaryLocation);
+    if (secondaryLocation) location.push(secondaryLocation);
+    if (location.length > 0) attachmentText.push(location.join(' '));
+    if (attachmentText.length > 0) attachment.text = attachmentText.join(', ');
+
+    return attachment;
   }
 
   function createIncident(service, description, from) {
@@ -129,7 +158,7 @@ robot.respond(/(.*)/i, function(res) {
         command = buildCliCommand(['find', 'members', 'email'].concat(searchTerms).join(' '));
         runCommand(command, function(emailResult) {
           var result = nameResult.concat(githubResult).concat(emailResult).filter(isFirstOccuranceOfMember);
-          sendResponse(parseListResponse(result));
+          sendResponse({ "attachments": createAttachments(result) });
         });
       });
     });
@@ -142,7 +171,7 @@ robot.respond(/(.*)/i, function(res) {
     // Search by name
     var command = buildCliCommand(['get', 'team'].concat(searchTerms).join(' '));
     runCommand(command, function(nameResult) {
-      sendResponse(parseGetResponse(nameResult));
+      sendResponse({ "attachments": [ createAttachment(nameResult) ] });
     });
   }
 
