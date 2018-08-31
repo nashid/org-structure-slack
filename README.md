@@ -2,9 +2,8 @@
 
 A Slack client built on top of [org-structure-cli][org-structure-cli].
 
-Commands entered in the bot that start with `get` or `find` are passed straight
-through to a local org-structure-cli. Any response is passed back to the user
-with some minor data formatting. The client is pulled in as a submodule.
+Allows you to ask questions about our organization, which are passed as commands
+to a local org-structure-cli. The client is pulled in as a submodule.
 
 The bot also integrates with PagerDuty and can be used to page a team. The team's
 PagerDuty service is looked up using the cli (it expects a team column called 'PagerDuty')
@@ -26,9 +25,9 @@ or by running the `run.sh` file:
 
     % ORG_STRUCTURE_SLACK_TOKEN=[bot token] run.sh
 
-`run.sh` expects to find the data directory and cli in `./data` and `./cli` respectively.
-
 Set an `ORG_STRUCTURE_PD_TOKEN` if you want to use the PagerDuty functionality.
+
+`run.sh` expects to find the data directory and cli in `./data` and `./cli` respectively.
 
 ## Docker
 
