@@ -5,9 +5,10 @@ A Slack client built on top of [org-structure-cli][org-structure-cli].
 Allows you to ask questions about our organization, which are passed as commands
 to a local org-structure-cli. The client is pulled in as a submodule.
 
-Certain key pieces of data are pulled from the response and formatted as a Slack
-attachment. Data fields that the bot checks for are `name`, `title` and `location`.
-Any data that isn't recognised is displayed as a generic attachment field.
+To run searches the bot expects certain fields in your org structure data - `name`,
+`email` and `github`. The same key pieces of data are pulled from the response and
+formatted in the text of a Slack attachment. Any other data is displayed as a
+generic attachment field.
 
 The bot also integrates with PagerDuty and can be used to page a team. The team's
 PagerDuty service is looked up using the cli (it expects a team column called 'PagerDuty')
@@ -16,9 +17,9 @@ variable.
 
 ## Usage
 
-    who is [somebody]
-    who are [some team]
-    page [some team]
+    who is [somebody] -- A fuzzy lookup by name, github handle and email
+    who are [some team] -- An exact lookup by name
+    page [some team] -- Finds a team by name and creates an incident against their PD service
 
 ## Building
 
