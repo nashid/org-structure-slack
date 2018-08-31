@@ -161,7 +161,11 @@ robot.respond(/(.*)/i, function(res) {
         command = buildCliCommand(['find', 'members', 'email'].concat(searchTerms).join(' '));
         runCommand(command, function(emailResult) {
           var result = nameResult.concat(githubResult).concat(emailResult).filter(isFirstOccuranceOfMember);
-          sendResponse({ "attachments": createAttachments(result) });
+          if (result.length > 0) {
+            sendResponse({ "attachments": createAttachments(result) });
+          } else {
+            sendResponse("Sorry! I wasn't able to find any results for '" + searchTerms.join(' ') + "'. Is the person set up in `https://github.com/saksdirect/org-structure/blob/master/members.csv`?");
+          }
         });
       });
     });
