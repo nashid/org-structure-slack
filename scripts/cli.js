@@ -164,7 +164,7 @@ robot.respond(/(.*)/i, function(res) {
           if (result.length > 0) {
             sendResponse({ "attachments": createAttachments(result) });
           } else {
-            sendResponse("Sorry! I wasn't able to find any results for '" + searchTerms.join(' ') + "'. Is the person set up in `https://github.com/saksdirect/org-structure/blob/master/members.csv`?");
+            sendResponse("Sorry! I wasn't able to find any results for '" + searchTerms.join(' ') + "'. Is the person set up in your org structure?");
           }
         });
       });
@@ -196,7 +196,7 @@ robot.respond(/(.*)/i, function(res) {
         description = res.message.user.real_name + " is looking for you urgently in Slack channel #" + res.message.rawMessage.channel.name;
         createIncident(pdService, description, res.message.user.profile.email);
       } else {
-        sendResponse("Sorry! I don't know the PagerDuty service for this team. Is it set up in `https://github.com/saksdirect/org-structure/blob/master/teams.csv`?");
+        sendResponse("Sorry! I don't know the PagerDuty service for this team. Is it set up in your org structure?");
       }
     });
   }

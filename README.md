@@ -5,6 +5,10 @@ A Slack client built on top of [org-structure-cli][org-structure-cli].
 Allows you to ask questions about our organization, which are passed as commands
 to a local org-structure-cli. The client is pulled in as a submodule.
 
+Certain key pieces of data are pulled from the response and formatted as a Slack
+attachment. Data fields that the bot checks for are `name`, `title` and `location`.
+Any data that isn't recognised is displayed as a generic attachment field.
+
 The bot also integrates with PagerDuty and can be used to page a team. The team's
 PagerDuty service is looked up using the cli (it expects a team column called 'PagerDuty')
 and the PagerDuty auth token is read from the ORG_STRUCTURE_PD_TOKEN environmant
