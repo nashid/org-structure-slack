@@ -64,7 +64,7 @@ robot.respond(/(.*)/i, function(res) {
         attachment = {},
         fields = [],
         field, key, value,
-        name, title, primaryLocation, secondaryLocation,
+        name, title, team, primaryLocation, secondaryLocation,
         attachmentText = [], location = [];
 
     for (var keyIndex in keys) {
@@ -78,11 +78,14 @@ robot.respond(/(.*)/i, function(res) {
           case 'TITLE':
             title = value;
             break;
+          case 'TEAM':
+            team = value;
+            break;
           case 'PRIMARY LOCATION':
             primaryLocation = value;
             break;
           case 'SECONDARY LOCATION':
-            secondaryLocation = '(' + value + ')';
+            secondaryLocation = value;
             break;
           default:
             field = {}
@@ -99,10 +102,11 @@ robot.respond(/(.*)/i, function(res) {
 
     if (name) attachment.title = name;
     if (title) attachmentText.push(title);
+    if (team) attachmentText.push(':busts_in_silhouette: ' + team);
     if (primaryLocation) location.push(primaryLocation);
-    if (secondaryLocation) location.push(secondaryLocation);
-    if (location.length > 0) attachmentText.push(location.join(' '));
-    if (attachmentText.length > 0) attachment.text = attachmentText.join(', ');
+    if (secondaryLocation) location.push('(' + secondaryLocation + ')');
+    if (location.length > 0) attachmentText.push(':round_pushpin: ' + location.join(' '));
+    if (attachmentText.length > 0) attachment.text = attachmentText.join(' - ');
 
     return attachment;
   }
