@@ -64,7 +64,7 @@ robot.respond(/(.*)/i, function(res) {
         attachment = {},
         fields = [],
         field, key, value,
-        name, team, title, primaryLocation, secondaryLocation,
+        name, title, primaryLocation, secondaryLocation,
         attachmentText = [], location = [];
 
     for (var keyIndex in keys) {
@@ -74,9 +74,6 @@ robot.respond(/(.*)/i, function(res) {
         switch (key.toUpperCase()) {
           case 'NAME':
             name = value;
-            break;
-          case 'TEAM':
-            team = value;
             break;
           case 'TITLE':
             title = value;
@@ -105,7 +102,6 @@ robot.respond(/(.*)/i, function(res) {
 
     if (name) attachment.title = name;
     if (title) attachmentText.push(title);
-    if (team) attachmentText.push('Team ' + team);
     if (primaryLocation) location.push(primaryLocation);
     if (secondaryLocation) location.push('(' + secondaryLocation + ')');
     if (location.length > 0) attachmentText.push(location.join(' '));
