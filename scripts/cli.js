@@ -9,7 +9,7 @@ robot.respond(/(.*)/i, function(res) {
       command = res.match[1].replace(/[\u2018\u2019]/g, '\\\''); // Replace the Slack curly quotes!
       attachmentColors = ['#0F9566', '#D11D35', '#F3C021', '#0D1682'];
 
-  console.log('Received command: ' + command + ' (Request id: ' + requestId);
+  console.log('Received command: ' + command + ' (Request id: ' + requestId + ')');
 
   function sendResponse(response) {
     res.send(response);
@@ -85,7 +85,8 @@ robot.respond(/(.*)/i, function(res) {
             secondaryLocation = value;
             break;
           case 'GROUP':
-            // Ignore group for now. It doesn't add much value.
+          case 'PAGERDUTY':
+            // These don't add much value.
             break;
           default:
             field = {}
