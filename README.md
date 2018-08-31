@@ -10,6 +10,12 @@ PagerDuty service is looked up using the cli (it expects a team column called 'P
 and the PagerDuty auth token is read from the ORG_STRUCTURE_PD_TOKEN environmant
 variable.
 
+## Usage
+
+    who is [somebody]
+    who are [some team]
+    page [some team]
+
 ## Building
 
 org-structure-slack is a chat bot built on the [Hubot][hubot] framework. It was
