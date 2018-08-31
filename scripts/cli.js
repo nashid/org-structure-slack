@@ -64,7 +64,7 @@ robot.respond(/(.*)/i, function(res) {
         attachment = {},
         fields = [],
         field, key, value,
-        name, title, team, primaryLocation, secondaryLocation,
+        name, team, title, primaryLocation, secondaryLocation,
         attachmentText = [], location = [];
 
     for (var keyIndex in keys) {
@@ -75,17 +75,20 @@ robot.respond(/(.*)/i, function(res) {
           case 'NAME':
             name = value;
             break;
-          case 'TITLE':
-            title = value;
-            break;
           case 'TEAM':
             team = value;
+            break;
+          case 'TITLE':
+            title = value;
             break;
           case 'PRIMARY LOCATION':
             primaryLocation = value;
             break;
           case 'SECONDARY LOCATION':
             secondaryLocation = value;
+            break;
+          case 'GROUP':
+            // Ignore group for now. It doesn't add much value.
             break;
           default:
             field = {}
@@ -102,11 +105,11 @@ robot.respond(/(.*)/i, function(res) {
 
     if (name) attachment.title = name;
     if (title) attachmentText.push(title);
-    if (team) attachmentText.push(':busts_in_silhouette: ' + team);
+    if (team) attachmentText.push('Team ' + team);
     if (primaryLocation) location.push(primaryLocation);
     if (secondaryLocation) location.push('(' + secondaryLocation + ')');
-    if (location.length > 0) attachmentText.push(':round_pushpin: ' + location.join(' '));
-    if (attachmentText.length > 0) attachment.text = attachmentText.join(' - ');
+    if (location.length > 0) attachmentText.push(location.join(' '));
+    if (attachmentText.length > 0) attachment.text = attachmentText.join(', ');
 
     return attachment;
   }
