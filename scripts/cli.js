@@ -173,13 +173,22 @@ robot.respond(/(.*)/i, function(res) {
   }
 
   function whoAreCommand(userCommand) {
-    var searchTerms = userCommand.split(' ');
+    var searchTerms = userCommand.split(' '),
+        member, memberNames = [];
     searchTerms.splice(0, 2);
 
     // Search by name
     var command = buildCliCommand(['get', 'team'].concat(searchTerms).join(' '));
     runCommand(command, function(nameResult) {
-      sendResponse({ "attachments": [ createAttachment(nameResult) ] });
+      command = buildCliCommand(['find', 'members', 'team'].concat(searchTerms).join(' '));
+      runCommand(command, function(membersResult) {
+        for (var memberIndex in membersResult) {
+          member = membersResult[memberIndex];
+          memberNames.push(member.Name);
+        }
+        nameResult.Members = memberNames.join(', ');
+        sendResponse({ "attachments": [ createAttachment(nameResult) ] });
+      });
     });
   }
 
