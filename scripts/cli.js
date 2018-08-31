@@ -133,11 +133,11 @@ robot.respond(/(.*)/i, function(res) {
         if (err) {
           sendResponse("Error trying to create incident. Please see logs for more details.");
           console.log("Error trying to create incident: " + err);
-        } else if (resp && resp.statusCode != 200) {
+        } else if (resp && resp.statusCode != 201) {
           sendResponse("Error trying to create incident. Please see logs for more details.");
           console.log("Error trying to create incident. Response code: " + resp.statusCode + "; Response body: " + body);
         } else {
-          sendResponse("Incident " + JSON.parse(result).incident.html_url + " created");
+          sendResponse("Incident " + JSON.parse(body).incident.html_url + " created");
         }
       });
   }
@@ -189,7 +189,7 @@ robot.respond(/(.*)/i, function(res) {
     runCommand(command, function(team) {
       pdService = team.PagerDuty;
       if (pdService && pdService.length > 0) {
-        description = res.message.user.real_name + " is looking for your urgently in Slack channel #" + res.message.rawMessage.channel.name;
+        description = res.message.user.real_name + " is looking for you urgently in Slack channel #" + res.message.rawMessage.channel.name;
         createIncident(pdService, description, res.message.user.profile.email);
       } else {
         sendResponse("Sorry! I don't know the PagerDuty service for this team. Is it set up in `https://github.com/saksdirect/org-structure/blob/master/teams.csv`?");
