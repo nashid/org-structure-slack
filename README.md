@@ -12,7 +12,7 @@ generic attachment field.
 
 The bot also integrates with PagerDuty and can be used to page a team. The team's
 PagerDuty service is looked up using the cli (it expects a team column called 'PagerDuty')
-and the PagerDuty auth token is read from the ORG_STRUCTURE_PD_TOKEN environmant
+and the PagerDuty auth token is read from the ORG_STRUCTURE_PD_TOKEN environment
 variable.
 
 ## Usage
